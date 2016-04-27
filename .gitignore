@@ -1,0 +1,25 @@
+# Eclipse
+.classpath
+.project
+.settings/
+
+# Intellij
+.idea/
+*.iml
+*.iws
+
+# Mac
+.DS_Store
+
+# Maven
+logs/
+log/
+target/
+bin/
+node_modules/
+gulpfile.js
+src/main/resources/rebel-remote.xml
+src/main/resources/rebel.xml
+_*/
+package.json
+yamikitchen.log
