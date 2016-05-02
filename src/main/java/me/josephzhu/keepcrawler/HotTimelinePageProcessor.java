@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import us.codecraft.webmagic.Page;
+import us.codecraft.webmagic.Request;
 import us.codecraft.webmagic.ResultItems;
 import us.codecraft.webmagic.Task;
 import us.codecraft.webmagic.handler.PatternProcessor;
@@ -51,7 +52,7 @@ public class HotTimelinePageProcessor extends PatternProcessor
                     if (i == response.data.size() - 1)
                     {
                         String nextHotTimelineUrl = String.format("http://api.gotokeep.com/v1.1/timeline/hot?lastId=%s", hotTimeline.id);
-                        page.addTargetRequest(nextHotTimelineUrl);
+                        page.addTargetRequest(new Request(nextHotTimelineUrl).setPriority(1));
                         logger.info("提交下载[nextHotTimelineUrl]:" + nextHotTimelineUrl);
                     }
 
@@ -59,7 +60,7 @@ public class HotTimelinePageProcessor extends PatternProcessor
                     {
                         String peopleUrl = String.format("http://api.gotokeep.com/v1.1/people/%s/", hotTimeline.author.id);
                         logger.info("提交下载[peopleUrl]:" + peopleUrl);
-                        page.addTargetRequest(peopleUrl);
+                        page.addTargetRequest(new Request(peopleUrl).setPriority(2));
                     }
                 }
             }

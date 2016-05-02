@@ -4,14 +4,16 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import us.codecraft.webmagic.Page;
+import us.codecraft.webmagic.Request;
 import us.codecraft.webmagic.ResultItems;
 import us.codecraft.webmagic.Task;
 import us.codecraft.webmagic.handler.PatternProcessor;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -72,16 +74,22 @@ public class PeopleTimelinePageProcessor extends PatternProcessor
                 for (int i = 0; i < response.data.size(); i++)
                 {
                     PeopleTimeline peopleTimeline = response.data.get(i);
-                    if (i == response.data.size() - 1)
-                    {
-                        String nextPeopleTimelineUrl = String.format("http://api.gotokeep.com/v1.1/people/%s/timeline/?lastId=%s", peopleTimeline.author, peopleTimeline.id);
-                        page.addTargetRequest(nextPeopleTimelineUrl);
-                        logger.info("提交下载[nextPeopleTimelineUrl]:" + nextPeopleTimelineUrl);
+                    try {
+                        if (i == response.data.size() - 1) {
+                            String nextPeopleTimelineUrl = String.format("http://api.gotokeep.com/v1.1/people/%s/timeline/?lastId=%s", peopleTimeline.author, peopleTimeline.id);
+                            page.addTargetRequest(new Request(nextPeopleTimelineUrl).setPriority(3));
+                            logger.info("提交下载[nextPeopleTimelineUrl]:" + nextPeopleTimelineUrl);
+                        }
+                        Image image = new Image();
+                        image.remoteUrl = peopleTimeline.photo;
+                        if (!StringUtils.isEmpty(image.remoteUrl)) {
+                            image.localPath = peopleTimeline.photo.substring(peopleTimeline.photo.lastIndexOf("gotokeep.com")).replace("/", File.separator);
+                            images.add(image);
+                        }
+                    } catch (Exception ex) {
+                        logger.warn(peopleTimeline.photo);
+                        ex.printStackTrace();
                     }
-                    Image image = new Image();
-                    image.remoteUrl = peopleTimeline.photo;
-                    image.localPath = String.format("keep/%s/%s/%s", peopleTimeline.author, "timeline", FilenameUtils.getName(image.remoteUrl));
-                    images.add(image);
                 }
                 page.putField("images", images);
             }

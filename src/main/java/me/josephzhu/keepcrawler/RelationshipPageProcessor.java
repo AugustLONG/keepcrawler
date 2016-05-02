@@ -1,20 +1,16 @@
 package me.josephzhu.keepcrawler;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import us.codecraft.webmagic.Page;
+import us.codecraft.webmagic.Request;
 import us.codecraft.webmagic.ResultItems;
 import us.codecraft.webmagic.Task;
 import us.codecraft.webmagic.handler.PatternProcessor;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by joseph on 16/4/22.
@@ -60,14 +56,14 @@ public class RelationshipPageProcessor extends PatternProcessor
                             url = url.substring(0, url.indexOf('?'));
                         }
                         String nextRelationshipUrl = String.format("%s?lastId=%s", url , relationship._id);
-                        page.addTargetRequest(nextRelationshipUrl);
+                        page.addTargetRequest(new Request(nextRelationshipUrl).setPriority(2));
                         logger.info("提交下载[nextRelationshipUrl]:" + nextRelationshipUrl);
                     }
                     if (Redis.shouldIssuePeopleRequest(relationship._id))
                     {
                         String relationshipPeopleUrl = String.format("http://api.gotokeep.com/v1.1/people/%s/", relationship._id);
                         logger.info("提交下载[relationshipPeopleUrl]:" + relationshipPeopleUrl);
-                        page.addTargetRequest(relationshipPeopleUrl);
+                        page.addTargetRequest(new Request(relationshipPeopleUrl).setPriority(2));
                     }
                 }
             }

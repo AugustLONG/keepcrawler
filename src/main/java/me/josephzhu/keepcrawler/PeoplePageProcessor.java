@@ -3,15 +3,16 @@ package me.josephzhu.keepcrawler;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import us.codecraft.webmagic.Page;
+import us.codecraft.webmagic.Request;
 import us.codecraft.webmagic.ResultItems;
 import us.codecraft.webmagic.Task;
 import us.codecraft.webmagic.handler.PatternProcessor;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -67,21 +68,23 @@ public class PeoplePageProcessor extends PatternProcessor
             List<Image> images = new ArrayList<>();
             Image image = new Image();
             image.remoteUrl = response.data.avatar;
-            image.localPath = String.format("keep/%s/%s", response.data._id, FilenameUtils.getName(image.remoteUrl));
+            if (!StringUtils.isEmpty(response.data.avatar) && response.data.avatar.lastIndexOf("gotokeep.com") > 0)
+                image.localPath = response.data.avatar.substring(response.data.avatar.lastIndexOf("gotokeep.com")).replace("/", File.separator);
+
             images.add(image);
             page.putField("images", images);
 
             //请求时间线数据
             String peopleTimelineUrl =String.format("http://api.gotokeep.com/v1.1/people/%s/timeline/", response.data._id);
             logger.info("提交下载[peopleTimelineUrl]:" + peopleTimelineUrl);
-            page.addTargetRequest(peopleTimelineUrl);
+            page.addTargetRequest(new Request(peopleTimelineUrl).setPriority(3));
 
             if (response.data.followers>0)
             {
                 //请求粉丝数据
                 String followersUrl = String.format("http://api.gotokeep.com/v1.1/people/%s/followers/", response.data._id);
                 logger.info("提交下载[followersUrl]:" + followersUrl);
-                page.addTargetRequest(followersUrl);
+                page.addTargetRequest(new Request(followersUrl).setPriority(2));
             }
 
             if (response.data.followings>0)
@@ -89,7 +92,7 @@ public class PeoplePageProcessor extends PatternProcessor
                 //请求关注数据
                 String followingsUrl = String.format("http://api.gotokeep.com/v1.1/people/%s/followings/", response.data._id);
                 logger.info("提交下载[followingsUrl]:" + followingsUrl);
-                page.addTargetRequest(followingsUrl);
+                page.addTargetRequest(new Request(followingsUrl).setPriority(2));
             }
         }
 

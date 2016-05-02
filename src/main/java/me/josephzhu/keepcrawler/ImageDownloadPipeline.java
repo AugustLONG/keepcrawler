@@ -20,39 +20,12 @@ import java.util.concurrent.TimeUnit;
  */
 public class ImageDownloadPipeline implements Pipeline
 {
-    private static Logger logger = LoggerFactory.getLogger("ImageDownloadPipeline");
     private static final String imageDirectory = Consts.current().ImageLocation;
+    private static Logger logger = LoggerFactory.getLogger("ImageDownloadPipeline");
     private static ExecutorService downloadThreadPool = new ThreadPoolExecutor(
-            10, 500, 30, TimeUnit.SECONDS,
+            100, 500, 30, TimeUnit.SECONDS,
             new ArrayBlockingQueue<>(100000),
             new ThreadPoolExecutor.CallerRunsPolicy());
-
-    @Override
-    public void process(ResultItems resultItems, Task task)
-    {
-        List<Image> imageList = resultItems.get("images");
-        if (imageList != null)
-        {
-            for(Image image : imageList)
-            {
-                if (StringUtils.isNotEmpty(image.remoteUrl) && StringUtils.isNotEmpty(image.localPath))
-                {
-                    downloadThreadPool.execute(()->
-                    {
-                        try
-                        {
-                            String filePath = downloadImage(image);
-                            logger.info(String.format("图片下载成功,%s->%s", image.remoteUrl, filePath));
-                        }
-                        catch (Exception ex)
-                        {
-                            logger.warn(String.format("图片%s下载失败,原因:%s", image.remoteUrl, ex.getMessage()));
-                        }
-                    });
-                }
-            }
-        }
-    }
 
     public static String downloadImage(Image image)
             throws Exception
@@ -90,5 +63,25 @@ public class ImageDownloadPipeline implements Pipeline
         boolean endsWithSlash = fileOrDirPath.endsWith(File.separator);
         return fileOrDirPath.substring(0, fileOrDirPath.lastIndexOf(File.separatorChar,
                 endsWithSlash ? fileOrDirPath.length() - 2 : fileOrDirPath.length() - 1));
+    }
+
+    @Override
+    public void process(ResultItems resultItems, Task task) {
+        List<Image> imageList = resultItems.get("images");
+        if (imageList != null) {
+            for (Image image : imageList) {
+                if (StringUtils.isNotEmpty(image.remoteUrl) && StringUtils.isNotEmpty(image.localPath)) {
+                    downloadThreadPool.execute(() ->
+                    {
+                        try {
+                            String filePath = downloadImage(image);
+                            logger.info(String.format("图片下载成功,%s->%s", image.remoteUrl, filePath));
+                        } catch (Exception ex) {
+                            logger.warn(String.format("图片%s下载失败,原因:%s", image.remoteUrl, ex.getMessage()));
+                        }
+                    });
+                }
+            }
+        }
     }
 }
